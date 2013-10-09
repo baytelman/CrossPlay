@@ -11,7 +11,7 @@ public class Tile extends Localizable implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	private int status = 0;
-	transient List<String> tokens = new ArrayList<String>();
+	private List<String> tokenIds = new ArrayList<String>();
 	
 	public Tile() {
 		this(0,0);
@@ -22,6 +22,17 @@ public class Tile extends Localizable implements Serializable {
 	}
 
 	public String toString() {
+		
+		if (this.getTokenIds() != null && this.getTokenIds().size() > 0) {
+			String result = "";
+			for (String tokenId: this.getTokenIds()) {
+				if (result.length() > 0)
+					result += "+";
+				result += tokenId;
+			}
+			return result;
+		}
+		
 		return "[" + getStatus() + "]";
 	}
 
@@ -34,10 +45,14 @@ public class Tile extends Localizable implements Serializable {
 	}
 
 	public void removeToken(Token token) {
-		this.tokens.remove(token.uniqueId);
+		this.getTokenIds().remove(token.getUniqueId());
 	}
 
 	public void addToken(Token token) {
-		this.tokens.add(token.uniqueId);
+		this.getTokenIds().add(token.getUniqueId());
+	}
+
+	public List<String> getTokenIds() {
+		return tokenIds;
 	}
 }

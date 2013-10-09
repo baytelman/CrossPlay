@@ -4,9 +4,11 @@ import java.util.List;
 
 import com.crossplay.core.client.GreetingService;
 import com.crossplay.core.shared.FieldVerifier;
+import com.crossplay.core.shared.controller.BoardClientController;
 import com.crossplay.core.shared.model.board.Board;
 import com.crossplay.core.shared.model.board.Event;
 import com.crossplay.core.shared.model.board.Tile;
+import com.crossplay.core.shared.model.board.Token;
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 
 /**
@@ -57,15 +59,19 @@ public class GreetingServiceImpl extends RemoteServiceServlet implements
 		if (_currentGame != null)
 			return _currentGame;
 		
-		_currentGame = Board.createEmptyBoard(16, 16);
+		_currentGame = BoardClientController.getInstance().createEmptyBoard(12,12);
+		
+		Token t = new Token("Felipe");
+		t.setCoordinates(5, 5);
+		BoardClientController.getInstance().updateLocalToken(_currentGame, t);
 		
 		return _currentGame;
 	}
 
 	@Override
 	public int updateTileStatus(Tile updatedTile) {
-		Tile local = _currentGame.updateLocaTile(updatedTile);
-		int eventIndex = _currentGame.addEvent(local);
+		Tile local = BoardClientController.getInstance().updateLocalTile(_currentGame, updatedTile);
+		int eventIndex = _currentGame.addEvent(new Event(local));
 		
 		return eventIndex;
 	}
@@ -73,5 +79,13 @@ public class GreetingServiceImpl extends RemoteServiceServlet implements
 	@Override
 	public List<Event> updatedTilesAfterEventAtIndex(int lastKnownEventIndex) {
 		return _currentGame.getEventsAfterIndex(lastKnownEventIndex);
+	}
+
+	@Override
+	public int updateTokenStatus(Token updatedToken) {
+		Token local = BoardClientController.getInstance().updateLocalToken(_currentGame, updatedToken);
+		int eventIndex = _currentGame.addEvent(new Event(local));
+		
+		return eventIndex;
 	}
 }

@@ -3,9 +3,11 @@ package com.crossplay.core.client;
 import java.util.List;
 
 import com.crossplay.core.client.board.BoardWidget;
+import com.crossplay.core.shared.controller.BoardClientController;
 import com.crossplay.core.shared.model.board.Board;
 import com.crossplay.core.shared.model.board.Event;
 import com.crossplay.core.shared.model.board.Tile;
+import com.crossplay.core.shared.model.board.Token;
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickEvent;
@@ -76,12 +78,7 @@ public class CrossPlay implements EntryPoint {
 			public void onSuccess(List<Event> result) {
 				errorLabel.setText("(Updated)");
 				if (result != null) {
-					for (Event event: result) {
-						if (event.getTile() != null) {
-							board.update(event.getTile());
-						}
-						CrossPlay.this.lastEventIndex = event.getIndex();
-					}
+					processEvents(result);
 				}
 			}
 
@@ -106,26 +103,66 @@ public class CrossPlay implements EntryPoint {
 			@Override
 			public void onSuccess(Board result) {
 				boardContainer.clear();
-				errorLabel.setText("(Joined game");
+				errorLabel.setText("(Joined game)");
 				board = new BoardWidget(CrossPlay.this, result);
 				boardContainer.add(board);
 			}
 		});
 	}
 	public void action(Tile tile) {
-		tile.setStatus(tile.getStatus() + 1);
-		greetingService.updateTileStatus(tile, new AsyncCallback<Integer>() {
+		
+		for (String tId: tile.getTokenIds()) {
+
+			Token localToken = board.getBoard().getToken(tId);
 			
-			@Override
-			public void onSuccess(Integer result) {
-				requestUpdate();
+			if (localToken == null)
+				continue;
+			
+			Token temp = new Token(localToken.getUniqueId());
+			
+			int x = localToken.getX();
+			int y = localToken.getY();
+			
+			int r = (int)(Math.random() * 4);
+			if (r == 0)
+				x++;
+			else if (r == 1)
+				x--;
+			else if (r == 2)
+				y++;
+			else 
+				y--;
+			
+			temp.setCoordinates(x, y);
+			greetingService.updateTokenStatus(temp, new AsyncCallback<Integer>() {
+
+				@Override
+				public void onSuccess(Integer result) {
+
+					requestUpdate();
+				}
+
+				@Override
+				public void onFailure(Throwable caught) {
+					// TODO Auto-generated method stub
+
+				}
+			});
+		}
+	}
+	private void processEvents(List<Event> result) {
+		for (Event event: result) {
+			if (event.getTile() != null) {
+				Tile localTile = BoardClientController.getInstance().updateLocalTile(board.getBoard(), event.getTile());
+				board.updateTileWidget(localTile);
 			}
 			
-			@Override
-			public void onFailure(Throwable caught) {
-				// TODO Auto-generated method stub
-				
+			if (event.getToken() != null) {
+				Token localToken = BoardClientController.getInstance().updateLocalToken(board.getBoard(), event.getToken());
+				board.updateTileWidget(localToken);
 			}
-		});
+			
+			CrossPlay.this.lastEventIndex = event.getIndex();
+		}
 	}
 }

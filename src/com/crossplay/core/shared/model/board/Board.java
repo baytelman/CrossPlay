@@ -14,8 +14,9 @@ public class Board implements Serializable {
 	int height;
 	
 	private List<List<Tile>> tiles;
+	HashMap<String, Token> tokens = new HashMap<String, Token>();
+	
 	transient List<Event> events = new ArrayList<Event>();
-	transient HashMap<String, Token> tokens = new HashMap<String, Token>();
 	
 	public Board()
 	{
@@ -43,23 +44,6 @@ public class Board implements Serializable {
 		
 		return result;
 	}
-	
-	public static Board createEmptyBoard(int w, int h) {
-		
-		Board board = new Board(w, h);
-		List<List<Tile>> tiles = new ArrayList<List<Tile>>();
-		
-		for (int y = 0; y < h; y++) {
-			ArrayList<Tile> row = new ArrayList<Tile>();
-			for (int x = 0; x < w; x++) {
-				row.add(new Tile(x, y));
-			}
-			tiles.add(row);
-		}
-		board.setTiles(tiles);
-		
-		return board;
-	}
 
 	public List<List<Tile>> getTiles() {
 		return tiles;
@@ -69,8 +53,7 @@ public class Board implements Serializable {
 		this.tiles = tiles;
 	}
 
-	public int addEvent(Tile local) {
-		Event e = new Event(local);
+	public int addEvent(Event e) {
 		e.setIndex(this.events.size());
 		this.events.add(e);
 		return e.getIndex();
@@ -86,10 +69,13 @@ public class Board implements Serializable {
 	public Tile getTile(int x, int y) {
 		return getTiles().get(y).get(x);
 	}
-	
-	public Tile updateLocaTile(Tile remote) {
-		Tile local = getTile(remote.getX(), remote.getY());
-		local.setStatus(remote.getStatus());
-		return local;
+
+	public Token getToken(String uniqueId) {
+		return this.tokens.get(uniqueId);
+	}
+
+	public Token addToken(Token remote) {
+		this.tokens.put(remote.getUniqueId(), remote);
+		return remote;
 	}
 }
