@@ -1,7 +1,5 @@
 package com.crossplay.core.server;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 import javax.servlet.http.HttpSession;
@@ -10,8 +8,9 @@ import com.crossplay.core.client.GreetingService;
 import com.crossplay.core.shared.controller.BoardClientController;
 import com.crossplay.core.shared.model.board.Board;
 import com.crossplay.core.shared.model.board.Event;
-import com.crossplay.core.shared.model.board.Tile;
 import com.crossplay.core.shared.model.board.Token;
+import com.crossplay.core.shared.model.character.CharacterAction;
+import com.crossplay.core.shared.model.character.CharacterActionRequest;
 import com.crossplay.core.shared.model.character.PlayerCharacter;
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 
@@ -30,7 +29,6 @@ GreetingService {
 	}
 	
 	Board _currentGame = null;
-	HashMap<String, PlayerCharacter> _players = new HashMap<>();;
 	
 	@Override
 	public Board currentGame() {
@@ -43,33 +41,15 @@ GreetingService {
 	}
 
 	@Override
-	public int updateTileStatus(Tile updatedTile) {
-		Tile local = BoardClientController.getInstance().updateLocalTile(_currentGame, updatedTile);
-		int eventIndex = _currentGame.addEvent(new Event(local));
-		
-		return eventIndex;
-	}
-
-	@Override
 	public List<Event> updatedTilesAfterEventAtIndex(int lastKnownEventIndex) {
-		if (_currentGame != null)
-			return _currentGame.getEventsAfterIndex(lastKnownEventIndex);
-		return new ArrayList<Event>();
-	}
-
-	@Override
-	public int updateTokenStatus(Token updatedToken) {
-		Token local = BoardClientController.getInstance().updateLocalToken(_currentGame, updatedToken);
-		int eventIndex = _currentGame.addEvent(new Event(local));
-		
-		return eventIndex;
+		return _currentGame.getEventsAfterIndex(lastKnownEventIndex);
 	}
 
 	@Override
 	public Board joinCurrentGame(PlayerCharacter c) {
 		currentGame();
 		
-		if (!_players.containsKey(c.getUniqueId())) {
+		if (!_currentGame.characters.containsKey(c.getUniqueId())) {
 			signUpPlayer(c);
 		}
 		
@@ -77,7 +57,8 @@ GreetingService {
 	}
 
 	private void signUpPlayer(PlayerCharacter c) {
-		_players.put(c.getUniqueId(), c);
+		_currentGame.characters.put(c.getUniqueId(), c);
+		_currentGame.addCharacter(c);
 		getSession().setAttribute(kSessionPlayerId, c.getUniqueId());
 
 		Token t = new Token(c.getUniqueId());
@@ -85,6 +66,14 @@ GreetingService {
 		
 		Event e = new Event(c);
 		e.setToken(t);
+		_currentGame.addEvent(e);
+	}
+
+	@Override
+	public void requestAction(CharacterActionRequest request) {
+		CharacterAction action = _currentGame.getActionWithRequest(_currentGame, request);
+		Event e = action.executeActionRequest(_currentGame, request);
+		if (e != null)
 		_currentGame.addEvent(e);
 	}
 }

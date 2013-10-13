@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import com.crossplay.core.shared.model.character.CharacterAction;
+import com.crossplay.core.shared.model.character.CharacterActionRequest;
 import com.crossplay.core.shared.model.character.GameCharacter;
 
 public class Board implements Serializable {
@@ -17,7 +19,7 @@ public class Board implements Serializable {
 	
 	private List<List<Tile>> tiles;
 	HashMap<String, Token> tokens = new HashMap<String, Token>();
-	HashMap<String, GameCharacter> characters = new HashMap<String, GameCharacter>();
+	public HashMap<String, GameCharacter> characters = new HashMap<String, GameCharacter>();
 	
 	transient List<Event> events = new ArrayList<Event>();
 	
@@ -97,5 +99,12 @@ public class Board implements Serializable {
 		if (x >= this.width || y >= this.height)
 			return false;
 		return true;
+	}
+
+	public CharacterAction getActionWithRequest(Board _currentGame, CharacterActionRequest request) {
+		GameCharacter character = getCharacter(request.getCharacterId());
+		if (character != null)
+			return character.getAction(request.getActionId());
+		return null;
 	}
 }

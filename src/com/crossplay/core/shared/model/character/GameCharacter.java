@@ -1,11 +1,12 @@
 package com.crossplay.core.shared.model.character;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 import com.crossplay.core.shared.model.board.Token;
 
-public class GameCharacter implements Serializable {
+public abstract class GameCharacter implements Serializable {
 
 	/**
 	 * 
@@ -13,11 +14,11 @@ public class GameCharacter implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	int maxHP;	
-	int movementRange;
+	private int movementRange;
 	
 	int currentHP;
 	
-	List<CharacterAction> availableActions;
+	public List<CharacterAction> availableActions = new ArrayList<CharacterAction>();
 	
 	transient Token currentGameToken;
 
@@ -33,5 +34,20 @@ public class GameCharacter implements Serializable {
 
 	public void updateWith(GameCharacter remote) {
 		this.currentHP = remote.currentHP;
+	}
+
+	public int getMovementRange() {
+		return movementRange;
+	}
+
+	public void setMovementRange(int movementRange) {
+		this.movementRange = movementRange;
+	}
+
+	public CharacterAction getAction(String actionId) {
+		for (CharacterAction action: availableActions)
+			if (action.getUniqueId().equalsIgnoreCase(actionId))
+				return action;
+		return null;
 	}
 }

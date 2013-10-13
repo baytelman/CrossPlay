@@ -9,6 +9,8 @@ import com.crossplay.core.shared.model.board.Event;
 import com.crossplay.core.shared.model.board.Tile;
 import com.crossplay.core.shared.model.board.Token;
 import com.crossplay.core.shared.model.character.GameCharacter;
+import com.crossplay.core.shared.model.character.MoveAction;
+import com.crossplay.core.shared.model.character.MoveActionRequest;
 import com.crossplay.core.shared.model.character.PlayerCharacter;
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.core.client.GWT;
@@ -32,20 +34,21 @@ public class CrossPlay implements EntryPoint {
 			.create(GreetingService.class);
 
 	Panel boardContainer = null;
+	PlayerCharacter character = null;
 	/**
 	 * This is the entry point method.
 	 */
-	
+
 	int lastEventIndex = -1;
 	BoardWidget board = null;
 	Label errorLabel = null;
-	
+
 	public void onModuleLoad() {
 		Button updateButton = new Button("Update");
 		Button sendButton = new Button("Request Board");
 		final TextBox userIdTextBox = new TextBox();
 		userIdTextBox.setText("username");
-		
+
 		errorLabel = new Label();
 
 		// We can add style names to widgets
@@ -96,9 +99,11 @@ public class CrossPlay implements EntryPoint {
 	}
 	private void joinCurrentGame(String userId) {
 
-		PlayerCharacter character = new PlayerCharacter();
+		character = new PlayerCharacter();
+		character.setMovementRange(3);
 		character.setUniqueId(userId);
-
+		character.availableActions.add(new MoveAction("move"));
+		
 		errorLabel.setText("Requesting game...");
 		greetingService.joinCurrentGame(character, new AsyncCallback<Board>() {
 
@@ -118,67 +123,46 @@ public class CrossPlay implements EntryPoint {
 		});
 	}
 	public void action(Tile tile) {
-		
-		for (String tId: tile.getTokenIds()) {
 
-			Token localToken = board.getBoard().getToken(tId);
-			
-			if (localToken == null)
-				continue;
-			
-			Token temp = new Token(localToken.getUniqueId());
-			
-			int x = localToken.getX();
-			int y = localToken.getY();
-			
-			boolean validCoordinates = false;
-			while (!validCoordinates) {
-				int r = (int)(Math.random() * 4);
-				if (r == 0)
-					x++;
-				else if (r == 1)
-					x--;
-				else if (r == 2)
-					y++;
-				else 
-					y--;
-				validCoordinates = board.getBoard().validateCoordinatesInBoard(x,y);
+
+		int x = tile.getX();
+		int y = tile.getY();
+
+		MoveAction m = (MoveAction)character.availableActions.get(0);
+		MoveActionRequest request = new MoveActionRequest(m, character, x, y);
+
+		greetingService.requestAction(request, new AsyncCallback<Void>() {
+
+			@Override
+			public void onSuccess(Void result) {
+				requestUpdate();
 			}
-			
-			temp.setCoordinates(x, y);
-			greetingService.updateTokenStatus(temp, new AsyncCallback<Integer>() {
 
-				@Override
-				public void onSuccess(Integer result) {
+			@Override
+			public void onFailure(Throwable caught) {
+				// TODO Auto-generated method stub
 
-					requestUpdate();
-				}
-
-				@Override
-				public void onFailure(Throwable caught) {
-					// TODO Auto-generated method stub
-
-				}
-			});
-		}
+			}
+		});
 	}
+	
 	private void processEvents(List<Event> result) {
 		for (Event event: result) {
 			if (event.getTile() != null) {
 				Tile localTile = BoardClientController.getInstance().updateLocalTile(board.getBoard(), event.getTile());
 				board.updateTileWidget(localTile);
 			}
-			
+
 			if (event.getCharacter() != null) {
 				GameCharacter localCharacter = BoardClientController.getInstance().updateLocalCharacter(board.getBoard(), event.getCharacter());
 				board.updateCharacterWidget(localCharacter);
 			}
-			
+
 			if (event.getToken() != null) {
 				Token localToken = BoardClientController.getInstance().updateLocalToken(board.getBoard(), event.getToken());
 				board.updateTileWidget(localToken);
 			}
-			
+
 			CrossPlay.this.lastEventIndex = event.getIndex();
 		}
 	}
