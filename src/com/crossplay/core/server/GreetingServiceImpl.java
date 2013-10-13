@@ -74,6 +74,6 @@ GreetingService {
 		CharacterAction action = _currentGame.getActionWithRequest(_currentGame, request);
 		Event e = action.executeActionRequest(_currentGame, request);
 		if (e != null)
-		_currentGame.addEvent(e);
+			_currentGame.addEvent(e);
 	}
 }

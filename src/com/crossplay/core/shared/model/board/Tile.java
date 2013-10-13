@@ -32,8 +32,8 @@ public class Tile extends Localizable implements Serializable {
 			}
 			return result;
 		}
-		
-		return "[" + getStatus() + "]";
+		return "";
+		//return "[" + getStatus() + "]";
 	}
 
 	public int getStatus() {

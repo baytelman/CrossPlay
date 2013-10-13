@@ -1,3 +1,4 @@
+
 package com.crossplay.core.client;
 
 import java.util.List;
@@ -33,14 +34,15 @@ public class CrossPlay implements EntryPoint {
 	private final GreetingServiceAsync greetingService = GWT
 			.create(GreetingService.class);
 
+	public static PlayerCharacter character = null;
+	public static BoardWidget board = null;
+	
 	Panel boardContainer = null;
-	PlayerCharacter character = null;
 	/**
 	 * This is the entry point method.
 	 */
 
 	int lastEventIndex = -1;
-	BoardWidget board = null;
 	Label errorLabel = null;
 
 	public void onModuleLoad() {
@@ -122,9 +124,23 @@ public class CrossPlay implements EntryPoint {
 			}
 		});
 	}
+	
+
+	public void suggestAction(Tile tile) {
+		int x = tile.getX();
+		int y = tile.getY();
+
+		MoveAction m = (MoveAction)character.availableActions.get(0);
+		MoveActionRequest request = new MoveActionRequest(m, character, x, y);
+
+		if (m.validateActionRequest(board.getBoard(), request)) {
+			board.previewActionAllowedInTileWidget(tile, m);
+		} else {
+			board.previewActionForbiddenInTileWidget(tile, m);
+		}
+	}
+	
 	public void action(Tile tile) {
-
-
 		int x = tile.getX();
 		int y = tile.getY();
 
@@ -160,6 +176,11 @@ public class CrossPlay implements EntryPoint {
 
 			if (event.getToken() != null) {
 				Token localToken = BoardClientController.getInstance().updateLocalToken(board.getBoard(), event.getToken());
+				
+				if (character != null && character.getUniqueId().equalsIgnoreCase(localToken.getUniqueId())) {
+					character.currentGameToken = localToken;
+				}
+				
 				board.updateTileWidget(localToken);
 			}
 

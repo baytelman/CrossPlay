@@ -21,7 +21,7 @@ public class MoveAction extends CharacterAction implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Override
-	boolean validateActionRequest(Board b, CharacterActionRequest request) {
+	public boolean validateActionRequest(Board b, CharacterActionRequest request) {
 		if (! (request instanceof MoveActionRequest))
 			return false;
 
@@ -66,6 +66,17 @@ public class MoveAction extends CharacterAction implements Serializable {
 		Event e = new Event(local);
 
 		return e;
+	}
+
+	@Override
+	public String getActionAllowedText() {
+		return "Move";
+	}
+
+	@Override
+	public String getActionForbiddenText() {
+		// TODO Auto-generated method stub
+		return "x";
 	}
 
 }

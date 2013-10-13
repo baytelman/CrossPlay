@@ -32,5 +32,7 @@ public abstract class CharacterAction implements Serializable {
 	public CharacterAction(String uId) {
 		this.setUniqueId(uId);
 	}
+	public abstract String getActionAllowedText();
+	public abstract String getActionForbiddenText();
 	
 }

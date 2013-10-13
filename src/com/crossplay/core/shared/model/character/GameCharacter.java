@@ -20,7 +20,7 @@ public abstract class GameCharacter implements Serializable {
 	
 	public List<CharacterAction> availableActions = new ArrayList<CharacterAction>();
 	
-	transient Token currentGameToken;
+	public transient Token currentGameToken;
 
 	private String uniqueId;
 

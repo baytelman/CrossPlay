@@ -6,9 +6,12 @@ import com.crossplay.core.client.CrossPlay;
 import com.crossplay.core.shared.model.board.Board;
 import com.crossplay.core.shared.model.board.Tile;
 import com.crossplay.core.shared.model.board.Token;
+import com.crossplay.core.shared.model.character.CharacterAction;
 import com.crossplay.core.shared.model.character.GameCharacter;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
+import com.google.gwt.event.dom.client.MouseOverEvent;
+import com.google.gwt.event.dom.client.MouseOverHandler;
 import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.ui.FlexTable;
 
@@ -36,6 +39,14 @@ public class BoardWidget extends FlexTable {
 						crossPlay.action(tile);
 					}
 				});
+				widget.addMouseOverHandler(new MouseOverHandler() {
+
+					@Override
+					public void onMouseOver(MouseOverEvent event) {
+crossPlay.suggestAction(tile);
+					}
+
+				});
 			}
 			y++;
 		}
@@ -50,6 +61,16 @@ public class BoardWidget extends FlexTable {
 
 	}
 
+	public void previewActionAllowedInTileWidget(Tile actionTile, CharacterAction action) {
+		TileWidget widget = this.getTile(actionTile.getX(), actionTile.getY());
+		widget.setText(action.getActionAllowedText());
+	}
+
+	public void previewActionForbiddenInTileWidget(Tile actionTile, CharacterAction action) {
+		TileWidget widget = this.getTile(actionTile.getX(), actionTile.getY());
+		widget.setText(action.getActionForbiddenText());
+	}
+
 	public void updateTileWidget(Tile updatedLocalTile) {
 		TileWidget widget = this.getTile(updatedLocalTile.getX(), updatedLocalTile.getY());
 		widget.update();
@@ -61,7 +82,7 @@ public class BoardWidget extends FlexTable {
 		oldWidget.update();
 		newWidget.update();
 	}
-	
+
 	private TileWidget getTile(int x, int y) {
 		return (TileWidget)this.getWidget(x, y);
 	}
@@ -76,6 +97,6 @@ public class BoardWidget extends FlexTable {
 
 	public void updateCharacterWidget(GameCharacter localCharacter) {
 		// TODO Auto-generated method stub
-		
+
 	}
 }
