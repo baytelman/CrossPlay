@@ -6,6 +6,7 @@ import com.crossplay.core.client.CrossPlay;
 import com.crossplay.core.shared.model.board.Board;
 import com.crossplay.core.shared.model.board.Tile;
 import com.crossplay.core.shared.model.board.Token;
+import com.crossplay.core.shared.model.character.GameCharacter;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.user.client.Timer;
@@ -71,5 +72,10 @@ public class BoardWidget extends FlexTable {
 
 	private void setBoard(Board board) {
 		this.board = board;
+	}
+
+	public void updateCharacterWidget(GameCharacter localCharacter) {
+		// TODO Auto-generated method stub
+		
 	}
 }

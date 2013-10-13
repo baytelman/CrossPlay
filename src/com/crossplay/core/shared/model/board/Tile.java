@@ -55,4 +55,8 @@ public class Tile extends Localizable implements Serializable {
 	public List<String> getTokenIds() {
 		return tokenIds;
 	}
+
+	public void updateWith(Tile remote) {
+		this.setStatus(remote.getStatus());
+	}
 }

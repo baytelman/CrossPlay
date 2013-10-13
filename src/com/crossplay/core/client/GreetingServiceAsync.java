@@ -12,9 +12,6 @@ import com.google.gwt.user.client.rpc.AsyncCallback;
  * The async counterpart of <code>GreetingService</code>.
  */
 public interface GreetingServiceAsync {
-	void greetServer(String input, AsyncCallback<String> callback)
-			throws IllegalArgumentException;
-
 	void currentGame(AsyncCallback<Board> callback);
 
 	void updateTileStatus(Tile updatedTile, AsyncCallback<Integer> callback);
@@ -22,4 +19,8 @@ public interface GreetingServiceAsync {
 
 	void updatedTilesAfterEventAtIndex(int lastKnownEventIndex,
 			AsyncCallback<List<Event>> callback);
+
+	void joinCurrentGame(
+			com.crossplay.core.shared.model.character.PlayerCharacter c,
+			AsyncCallback<Board> callback);
 }

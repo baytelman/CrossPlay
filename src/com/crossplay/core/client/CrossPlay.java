@@ -8,6 +8,8 @@ import com.crossplay.core.shared.model.board.Board;
 import com.crossplay.core.shared.model.board.Event;
 import com.crossplay.core.shared.model.board.Tile;
 import com.crossplay.core.shared.model.board.Token;
+import com.crossplay.core.shared.model.character.GameCharacter;
+import com.crossplay.core.shared.model.character.PlayerCharacter;
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickEvent;
@@ -22,7 +24,6 @@ import com.google.gwt.user.client.ui.TextBox;
 /**
  * Entry point classes define <code>onModuleLoad()</code>.
  */
-@SuppressWarnings("unused")
 public class CrossPlay implements EntryPoint {
 	/**
 	 * Create a remote service proxy to talk to the server-side Greeting service.
@@ -42,6 +43,8 @@ public class CrossPlay implements EntryPoint {
 	public void onModuleLoad() {
 		Button updateButton = new Button("Update");
 		Button sendButton = new Button("Request Board");
+		final TextBox userIdTextBox = new TextBox();
+		userIdTextBox.setText("username");
 		
 		errorLabel = new Label();
 
@@ -50,6 +53,7 @@ public class CrossPlay implements EntryPoint {
 
 		// Add the nameField and sendButton to the RootPanel
 		// Use RootPanel.get() to get the entire body element
+		RootPanel.get("requestGameContainer").add(userIdTextBox);
 		RootPanel.get("requestGameContainer").add(sendButton);
 		RootPanel.get("requestUpdateContainer").add(updateButton);
 		RootPanel.get("errorLabelContainer").add(errorLabel);
@@ -59,7 +63,8 @@ public class CrossPlay implements EntryPoint {
 		sendButton.addClickHandler(new ClickHandler() {
 			@Override
 			public void onClick(ClickEvent event) {
-				requestJoinGame();
+				String uId = userIdTextBox.getText();
+				joinCurrentGame(uId);
 			}
 		});
 
@@ -89,10 +94,13 @@ public class CrossPlay implements EntryPoint {
 			}
 		});
 	}
-	private void requestJoinGame() {
+	private void joinCurrentGame(String userId) {
+
+		PlayerCharacter character = new PlayerCharacter();
+		character.setUniqueId(userId);
 
 		errorLabel.setText("Requesting game...");
-		greetingService.currentGame(new AsyncCallback<Board>() {
+		greetingService.joinCurrentGame(character, new AsyncCallback<Board>() {
 
 			@Override
 			public void onFailure(Throwable caught) {
@@ -123,15 +131,19 @@ public class CrossPlay implements EntryPoint {
 			int x = localToken.getX();
 			int y = localToken.getY();
 			
-			int r = (int)(Math.random() * 4);
-			if (r == 0)
-				x++;
-			else if (r == 1)
-				x--;
-			else if (r == 2)
-				y++;
-			else 
-				y--;
+			boolean validCoordinates = false;
+			while (!validCoordinates) {
+				int r = (int)(Math.random() * 4);
+				if (r == 0)
+					x++;
+				else if (r == 1)
+					x--;
+				else if (r == 2)
+					y++;
+				else 
+					y--;
+				validCoordinates = board.getBoard().validateCoordinatesInBoard(x,y);
+			}
 			
 			temp.setCoordinates(x, y);
 			greetingService.updateTokenStatus(temp, new AsyncCallback<Integer>() {
@@ -155,6 +167,11 @@ public class CrossPlay implements EntryPoint {
 			if (event.getTile() != null) {
 				Tile localTile = BoardClientController.getInstance().updateLocalTile(board.getBoard(), event.getTile());
 				board.updateTileWidget(localTile);
+			}
+			
+			if (event.getCharacter() != null) {
+				GameCharacter localCharacter = BoardClientController.getInstance().updateLocalCharacter(board.getBoard(), event.getCharacter());
+				board.updateCharacterWidget(localCharacter);
 			}
 			
 			if (event.getToken() != null) {

@@ -6,6 +6,7 @@ import java.util.List;
 import com.crossplay.core.shared.model.board.Board;
 import com.crossplay.core.shared.model.board.Tile;
 import com.crossplay.core.shared.model.board.Token;
+import com.crossplay.core.shared.model.character.GameCharacter;
 
 public class BoardClientController {
 	
@@ -41,7 +42,7 @@ public class BoardClientController {
 	
 	public Tile updateLocalTile(Board b, Tile remote) {
 		Tile local = b.getTile(remote.getX(), remote.getY());
-		local.setStatus(remote.getStatus());
+		local.updateWith(remote);
 		return local;
 	}
 
@@ -59,6 +60,15 @@ public class BoardClientController {
 
 		Tile targetTile = b.getTile(local.getX(), local.getY());
 		targetTile.addToken(remote);
+		return local;
+	}
+
+	public GameCharacter updateLocalCharacter(Board b, GameCharacter remote) {
+		GameCharacter local = b.getCharacter(remote.getUniqueId());
+		if ( local == null ) {
+			local = b.addCharacter(remote);
+		}
+		local.updateWith(remote);
 		return local;
 	}
 }

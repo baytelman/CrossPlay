@@ -1,14 +1,18 @@
 package com.crossplay.core.server;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
+import javax.servlet.http.HttpSession;
+
 import com.crossplay.core.client.GreetingService;
-import com.crossplay.core.shared.FieldVerifier;
 import com.crossplay.core.shared.controller.BoardClientController;
 import com.crossplay.core.shared.model.board.Board;
 import com.crossplay.core.shared.model.board.Event;
 import com.crossplay.core.shared.model.board.Tile;
 import com.crossplay.core.shared.model.board.Token;
+import com.crossplay.core.shared.model.character.PlayerCharacter;
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 
 /**
@@ -16,54 +20,24 @@ import com.google.gwt.user.server.rpc.RemoteServiceServlet;
  */
 @SuppressWarnings("serial")
 public class GreetingServiceImpl extends RemoteServiceServlet implements
-		GreetingService {
+GreetingService {
 
-	public String greetServer(String input) throws IllegalArgumentException {
-		// Verify that the input is valid. 
-		if (!FieldVerifier.isValidName(input)) {
-			// If the input is not valid, throw an IllegalArgumentException back to
-			// the client.
-			throw new IllegalArgumentException(
-					"Name must be at least 4 characters long");
-		}
-
-		String serverInfo = getServletContext().getServerInfo();
-		String userAgent = getThreadLocalRequest().getHeader("User-Agent");
-
-		// Escape data from the client to avoid cross-site script vulnerabilities.
-		input = escapeHtml(input);
-		userAgent = escapeHtml(userAgent);
-
-		return "Hello, " + input + "!<br><br>I am running " + serverInfo
-				+ ".<br><br>It looks like you are using:<br>" + userAgent;
+	final static String kSessionPlayerId = "kSessionPlayerId";
+	
+	private HttpSession getSession() {
+		// Get the current request and then return its session
+		return this.getThreadLocalRequest().getSession();
 	}
-
-	/**
-	 * Escape an html string. Escaping data received from the client helps to
-	 * prevent cross-site script vulnerabilities.
-	 * 
-	 * @param html the html string to escape
-	 * @return the escaped string
-	 */
-	private String escapeHtml(String html) {
-		if (html == null) {
-			return null;
-		}
-		return html.replaceAll("&", "&amp;").replaceAll("<", "&lt;")
-				.replaceAll(">", "&gt;");
-	}
-
+	
 	Board _currentGame = null;
+	HashMap<String, PlayerCharacter> _players = new HashMap<>();;
+	
 	@Override
 	public Board currentGame() {
 		if (_currentGame != null)
 			return _currentGame;
 		
 		_currentGame = BoardClientController.getInstance().createEmptyBoard(12,12);
-		
-		Token t = new Token("Felipe");
-		t.setCoordinates(5, 5);
-		BoardClientController.getInstance().updateLocalToken(_currentGame, t);
 		
 		return _currentGame;
 	}
@@ -78,7 +52,9 @@ public class GreetingServiceImpl extends RemoteServiceServlet implements
 
 	@Override
 	public List<Event> updatedTilesAfterEventAtIndex(int lastKnownEventIndex) {
-		return _currentGame.getEventsAfterIndex(lastKnownEventIndex);
+		if (_currentGame != null)
+			return _currentGame.getEventsAfterIndex(lastKnownEventIndex);
+		return new ArrayList<Event>();
 	}
 
 	@Override
@@ -87,5 +63,28 @@ public class GreetingServiceImpl extends RemoteServiceServlet implements
 		int eventIndex = _currentGame.addEvent(new Event(local));
 		
 		return eventIndex;
+	}
+
+	@Override
+	public Board joinCurrentGame(PlayerCharacter c) {
+		currentGame();
+		
+		if (!_players.containsKey(c.getUniqueId())) {
+			signUpPlayer(c);
+		}
+		
+		return _currentGame;
+	}
+
+	private void signUpPlayer(PlayerCharacter c) {
+		_players.put(c.getUniqueId(), c);
+		getSession().setAttribute(kSessionPlayerId, c.getUniqueId());
+
+		Token t = new Token(c.getUniqueId());
+		BoardClientController.getInstance().updateLocalToken(_currentGame, t);
+		
+		Event e = new Event(c);
+		e.setToken(t);
+		_currentGame.addEvent(e);
 	}
 }

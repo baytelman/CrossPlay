@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import com.crossplay.core.shared.model.character.GameCharacter;
+
 public class Board implements Serializable {
 	/**
 	 * 
@@ -15,6 +17,7 @@ public class Board implements Serializable {
 	
 	private List<List<Tile>> tiles;
 	HashMap<String, Token> tokens = new HashMap<String, Token>();
+	HashMap<String, GameCharacter> characters = new HashMap<String, GameCharacter>();
 	
 	transient List<Event> events = new ArrayList<Event>();
 	
@@ -77,5 +80,22 @@ public class Board implements Serializable {
 	public Token addToken(Token remote) {
 		this.tokens.put(remote.getUniqueId(), remote);
 		return remote;
+	}
+
+	public GameCharacter getCharacter(String uniqueId) {
+		return this.characters.get(uniqueId);
+	}
+
+	public GameCharacter addCharacter(GameCharacter remote) {
+		this.characters.put(remote.getUniqueId(), remote);
+		return remote;
+	}
+
+	public boolean validateCoordinatesInBoard(int x, int y) {
+		if (x < 0 || y < 0)
+			return false;
+		if (x >= this.width || y >= this.height)
+			return false;
+		return true;
 	}
 }

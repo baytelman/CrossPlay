@@ -3,6 +3,8 @@
   <application>coherent-sphere-358</application>
   <version>1</version>
 
+  <sessions-enabled>true</sessions-enabled>
+  
   <!--
     Allows App Engine to send multiple requests to one instance in parallel:
   -->

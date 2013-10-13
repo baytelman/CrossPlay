@@ -2,6 +2,8 @@ package com.crossplay.core.shared.model.board;
 
 import java.io.Serializable;
 
+import com.crossplay.core.shared.model.character.GameCharacter;
+
 public class Event implements Serializable{
 
 	/**
@@ -10,7 +12,7 @@ public class Event implements Serializable{
 	private static final long serialVersionUID = 1L;
 	private Tile tile = null;
 	private Token token = null;
-	
+	private GameCharacter character = null;
 	private int index = -1;
 	public Event()
 	{
@@ -21,6 +23,9 @@ public class Event implements Serializable{
 	}
 	public Event(Token local) {
 		this.setToken(local);
+	}
+	public Event(GameCharacter c) {
+		this.setCharacter(c);
 	}
 	public void setIndex(int index) {
 		this.index  = index;
@@ -39,6 +44,12 @@ public class Event implements Serializable{
 	}
 	public void setToken(Token token) {
 		this.token = token;
+	}
+	public GameCharacter getCharacter() {
+		return character;
+	}
+	public void setCharacter(GameCharacter character) {
+		this.character = character;
 	}
 
 }
