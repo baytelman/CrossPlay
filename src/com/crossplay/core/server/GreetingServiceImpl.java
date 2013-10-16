@@ -57,6 +57,9 @@ GreetingService {
 	}
 
 	private void signUpPlayer(PlayerCharacter c) {
+		
+		c.currentHP = c.maxHP = 10;
+		
 		_currentGame.characters.put(c.getUniqueId(), c);
 		_currentGame.addCharacter(c);
 		getSession().setAttribute(kSessionPlayerId, c.getUniqueId());
@@ -72,8 +75,10 @@ GreetingService {
 	@Override
 	public void requestAction(CharacterActionRequest request) {
 		CharacterAction action = _currentGame.getActionWithRequest(_currentGame, request);
-		Event e = action.executeActionRequest(_currentGame, request);
-		if (e != null)
-			_currentGame.addEvent(e);
+		if (action.validateActionRequest(_currentGame, request)) {
+			Event e = action.executeActionRequest(_currentGame, request);
+			if (e != null)
+				_currentGame.addEvent(e);
+		}
 	}
 }

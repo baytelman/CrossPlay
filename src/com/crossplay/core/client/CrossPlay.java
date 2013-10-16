@@ -9,10 +9,15 @@ import com.crossplay.core.shared.model.board.Board;
 import com.crossplay.core.shared.model.board.Event;
 import com.crossplay.core.shared.model.board.Tile;
 import com.crossplay.core.shared.model.board.Token;
+import com.crossplay.core.shared.model.character.AttackAction;
+import com.crossplay.core.shared.model.character.AttackActionRequest;
+import com.crossplay.core.shared.model.character.CharacterAction;
+import com.crossplay.core.shared.model.character.CharacterActionRequest;
 import com.crossplay.core.shared.model.character.GameCharacter;
 import com.crossplay.core.shared.model.character.MoveAction;
 import com.crossplay.core.shared.model.character.MoveActionRequest;
 import com.crossplay.core.shared.model.character.PlayerCharacter;
+import com.crossplay.core.shared.model.character.SwordAttackAction;
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickEvent;
@@ -34,7 +39,7 @@ public class CrossPlay implements EntryPoint {
 	private final GreetingServiceAsync greetingService = GWT
 			.create(GreetingService.class);
 
-	public static PlayerCharacter character = null;
+	public static PlayerCharacter playerCharacter = null;
 	public static BoardWidget board = null;
 	
 	Panel boardContainer = null;
@@ -44,6 +49,8 @@ public class CrossPlay implements EntryPoint {
 
 	int lastEventIndex = -1;
 	Label errorLabel = null;
+
+	private CharacterActionRequest suggestedActionRequest;
 
 	public void onModuleLoad() {
 		Button updateButton = new Button("Update");
@@ -101,13 +108,14 @@ public class CrossPlay implements EntryPoint {
 	}
 	private void joinCurrentGame(String userId) {
 
-		character = new PlayerCharacter();
-		character.setMovementRange(3);
-		character.setUniqueId(userId);
-		character.availableActions.add(new MoveAction("move"));
+		playerCharacter = new PlayerCharacter();
+		playerCharacter.setMovementRange(3);
+		playerCharacter.setUniqueId(userId);
+		playerCharacter.addAction(new MoveAction("move"));
+		playerCharacter.addAction(new SwordAttackAction("sord"));
 		
 		errorLabel.setText("Requesting game...");
-		greetingService.joinCurrentGame(character, new AsyncCallback<Board>() {
+		greetingService.joinCurrentGame(playerCharacter, new AsyncCallback<Board>() {
 
 			@Override
 			public void onFailure(Throwable caught) {
@@ -130,24 +138,38 @@ public class CrossPlay implements EntryPoint {
 		int x = tile.getX();
 		int y = tile.getY();
 
-		MoveAction m = (MoveAction)character.availableActions.get(0);
-		MoveActionRequest request = new MoveActionRequest(m, character, x, y);
+		CharacterAction a = null;
+		if (tile.getTokenIds().size() == 0) {
 
-		if (m.validateActionRequest(board.getBoard(), request)) {
-			board.previewActionAllowedInTileWidget(tile, m);
+			MoveAction m = playerCharacter.getCurrentMoveAction();
+			MoveActionRequest request = new MoveActionRequest(m, playerCharacter, x, y);
+
+			this.suggestedActionRequest = request;
+			a = m;
+			
 		} else {
-			board.previewActionForbiddenInTileWidget(tile, m);
+
+			String targetTokenId = tile.getTokenIds().get(0);
+			GameCharacter targetCharacter = board.getBoard().getCharacter(targetTokenId);
+			AttackAction m = playerCharacter.getCurrentAttackAction();
+			AttackActionRequest request = new AttackActionRequest(m, playerCharacter, targetCharacter);
+
+			this.suggestedActionRequest = request;
+			a = m;
+
+			
+		}
+		
+		if (a.validateActionRequest(board.getBoard(), this.suggestedActionRequest)) {
+			board.previewActionAllowedInTileWidget(tile, a);
+		} else {
+			board.previewActionForbiddenInTileWidget(tile, a);
 		}
 	}
 	
 	public void action(Tile tile) {
-		int x = tile.getX();
-		int y = tile.getY();
 
-		MoveAction m = (MoveAction)character.availableActions.get(0);
-		MoveActionRequest request = new MoveActionRequest(m, character, x, y);
-
-		greetingService.requestAction(request, new AsyncCallback<Void>() {
+		greetingService.requestAction(this.suggestedActionRequest, new AsyncCallback<Void>() {
 
 			@Override
 			public void onSuccess(Void result) {
@@ -166,18 +188,24 @@ public class CrossPlay implements EntryPoint {
 		for (Event event: result) {
 			if (event.getTile() != null) {
 				Tile localTile = BoardClientController.getInstance().updateLocalTile(board.getBoard(), event.getTile());
+				localTile.setBoard(board.getBoard());
 				board.updateTileWidget(localTile);
 			}
 
 			if (event.getCharacter() != null) {
 				GameCharacter localCharacter = BoardClientController.getInstance().updateLocalCharacter(board.getBoard(), event.getCharacter());
 				board.updateCharacterWidget(localCharacter);
+				if (localCharacter.currentGameToken != null) { 
+					Tile tile = board.getBoard().getTile(localCharacter.currentGameToken);
+					board.updateTileWidget(tile);
+				}
 			}
 
 			if (event.getToken() != null) {
 				Token localToken = BoardClientController.getInstance().updateLocalToken(board.getBoard(), event.getToken());
 				
-				if (character != null && character.getUniqueId().equalsIgnoreCase(localToken.getUniqueId())) {
+				GameCharacter character = board.getBoard().getCharacter(localToken.getUniqueId());
+				if (character != null) {
 					character.currentGameToken = localToken;
 				}
 				

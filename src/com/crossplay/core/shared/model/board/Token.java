@@ -2,6 +2,8 @@ package com.crossplay.core.shared.model.board;
 
 import java.io.Serializable;
 
+import com.crossplay.core.shared.model.character.GameCharacter;
+
 public class Token extends Localizable implements Serializable {
 
 	/**
@@ -13,6 +15,8 @@ public class Token extends Localizable implements Serializable {
 
 	transient private int prevX;
 	transient private int prevY;
+	
+	transient GameCharacter character;
 	
 	public Token() {
 		this("Unknown");

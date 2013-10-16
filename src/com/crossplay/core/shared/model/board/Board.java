@@ -75,6 +75,10 @@ public class Board implements Serializable {
 		return getTiles().get(y).get(x);
 	}
 
+
+	public Tile getTile(Token token) {
+		return getTile(token.getX(), token.getY());
+	}
 	public Token getToken(String uniqueId) {
 		return this.tokens.get(uniqueId);
 	}

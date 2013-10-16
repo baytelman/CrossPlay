@@ -13,12 +13,12 @@ public abstract class GameCharacter implements Serializable {
 	 */
 	private static final long serialVersionUID = 1L;
 
-	int maxHP;	
+	public int maxHP;	
 	private int movementRange;
 	
-	int currentHP;
+	public int currentHP;
 	
-	public List<CharacterAction> availableActions = new ArrayList<CharacterAction>();
+	List<CharacterAction> availableActions = new ArrayList<CharacterAction>();
 	
 	public transient Token currentGameToken;
 
@@ -33,6 +33,7 @@ public abstract class GameCharacter implements Serializable {
 	}
 
 	public void updateWith(GameCharacter remote) {
+		this.maxHP = remote.maxHP;
 		this.currentHP = remote.currentHP;
 	}
 
@@ -49,5 +50,13 @@ public abstract class GameCharacter implements Serializable {
 			if (action.getUniqueId().equalsIgnoreCase(actionId))
 				return action;
 		return null;
+	}
+	
+	public void addAction(CharacterAction newAction) {
+		this.availableActions.add(newAction);
+	}
+
+	public int performAttack(AttackAction attackAction) {
+		return attackAction.getDamage();
 	}
 }

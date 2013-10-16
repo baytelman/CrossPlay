@@ -31,7 +31,9 @@ public class BoardClientController {
 		for (int y = 0; y < h; y++) {
 			ArrayList<Tile> row = new ArrayList<Tile>();
 			for (int x = 0; x < w; x++) {
-				row.add(new Tile(x, y));
+				Tile t = new Tile(x, y);
+				t.setBoard(board);
+				row.add(t);
 			}
 			tiles.add(row);
 		}
@@ -60,6 +62,10 @@ public class BoardClientController {
 
 		Tile targetTile = b.getTile(local.getX(), local.getY());
 		targetTile.addToken(remote);
+		
+		originalTile.setBoard(b);
+		targetTile.setBoard(b);
+		
 		return local;
 	}
 

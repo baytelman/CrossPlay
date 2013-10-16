@@ -16,7 +16,7 @@ public abstract class CharacterAction implements Serializable {
 	
 	transient GameCharacter character;
 	
-	abstract boolean validateActionRequest(Board b, CharacterActionRequest request);
+	public abstract boolean validateActionRequest(Board b, CharacterActionRequest request);
 	public abstract Event executeActionRequest(Board b, CharacterActionRequest request);
 
 	public CharacterAction() {};
